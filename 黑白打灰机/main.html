@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf8">
+	<title></title>
+	<style type="text/css">
+    div,body,a,button,input{
+    margin: 0;
+    padding: 0;
+}
+	#ground{
+    width: 320px;
+    height: 500px;
+    background:url("img/images/gameArts-hd.png")no-repeat;
+    background-size: 512px 1024px;
+    position: relative;
+}
+#Myfir{
+    width: 65px;
+    height: 75px;
+    background:url("img/images/gameArts.png")no-repeat;
+    background-size: 512px 1024px;
+    background-position: -433px -332px ;
+    position: absolute;
+}
+	</style>
+</head>
+<body>
+<div id="ground">
+    <div id="Myfir" style=" top: 425px;left: 120px;">
+
+    </div>
+</div>
+<p id="ppp"></p>
+</body>
+<script type="text/javascript">
+var sum = 0;
+var bullets = [];
+var enemies = [];
+
+
+
+
+
+//敌人飞机类
+function EnemyPlane(fatherObj,width,height,imgPosition){
+    this.width = width ;
+    this.height = height;
+    this.imgPosition = imgPosition;
+    this.img         = "url(img/images/gameArts.png)";
+    this.speed       = Math.floor(Math.random()*16+5);
+    var _this        = this;
+
+
+    this.htmlObj     = (function(){                     //自调用函数
+        var htmlObj = document.createElement('div');//创建飞机
+        htmlObj.style.width = _this.width + "px";
+        htmlObj.style.height= _this.height + "px";
+        htmlObj.style.background = _this.img;
+        htmlObj.style.backgroundPosition = _this.imgPosition;
+        htmlObj.style.position   = "absolute";
+        htmlObj.style.top        =-_this.height + "px";
+        htmlObj.style.left       = Math.floor(Math.random()*(fatherObj.offsetWidth - _this.width))+"px";
+        fatherObj.appendChild(htmlObj);
+        return htmlObj;
+    })()
+
+
+//实现飞机向下飞
+    this.timer = setInterval(function(){
+        _this.htmlObj.style.top = _this.htmlObj.offsetTop + _this.speed +"px";
+    },100)
+
+
+//清除定时器和盒子的方法
+    this.clearSelf = this.clearSelf = function(){
+        clearInterval(this.timer);
+        _this.htmlObj.parentNode.removeChild(_this.htmlObj);
+    }
+}
+
+
+
+
+
+
+//自己飞机
+function Myplane(father,myId){
+    this.myId = myId;
+    this.html = document.getElementById(this.myId);
+    this.x    = 0;
+    this.y    = 0;
+    var _this = this;
+    var array = ["-433px -332px","-433px -1px"];
+    var index = 0;
+
+    //实现喷气式效果
+    this.autoMove = setInterval(function(){
+        var currentPosition = array[index%2];
+            _this.html.style.backgroundPosition =currentPosition;
+            index++;
+    },500)
+
+
+    //鼠标响应事件
+    document.onmousemove = function(e){
+        e = e || window.event;
+        _this.x = e.clientX;
+        _this.y = e.clientY;
+        if (_this.y>500) {
+            _this.y=500;
+        };
+        if (_this.x>320) {
+            _this.x=320;
+        };
+        _this.html.style.left = _this.x-32 +"px";
+        _this.html.style.top  = _this.y-40 +"px";
+    }
+
+
+
+    this.shoot = setInterval(function(){                        //定时创建子弹放进数组
+        var bullet =new Bullet(father,_this.html.offsetLeft+32,_this.html.offsetTop)
+        bullets.push(bullet);
+    },500)
+}
+
+
+
+
+//子弹
+function Bullet(father,x,y){
+    this.x = x;
+    this.y = y;
+    var _this = this;
+
+
+    //自调用创建子弹方法
+    this.htmlElem = (function(){
+        var bullet = document.createElement("div");
+        bullet.style.width = "3px";
+        bullet.style.height= "6px";
+        bullet.style.background = "red";
+        bullet.style.position   = "absolute";
+        bullet.style.top        = _this.y-6 + "px";
+        bullet.style.left       = _this.x +"px";
+
+
+        father.appendChild(bullet);
+        return bullet;
+    })()
+
+
+    //子弹上飞
+    this.run = setInterval(function(){
+        _this.htmlElem.style.top = _this.htmlElem.offsetTop - 10 + "px";
+    },60)
+    this.clearSelf = function(){                                        //创建清除方法
+        clearInterval(this.run);
+        _this.htmlElem.parentNode.removeChild(_this.htmlElem);
+    }
+}
+
+
+//创建不同敌机对象
+function createEnemy(father){
+    setInterval(function(){                         //创建不同的敌方飞机对象
+        var oneEnemy;
+        var index = Math.floor(Math.random()*3)
+        switch(index){
+            case 0:
+            var oneEnemy = new EnemyPlane(father,110,166,"-110px -736px");
+            break;
+            case 1:
+            var oneEnemy = new EnemyPlane(father,36,24,"-81px -657px");
+            break;
+            case 2:
+            var oneEnemy = new EnemyPlane(father,45,60,"-1px -568px");
+            break;
+        }
+        enemies.push(oneEnemy);                 //把每个地方飞机加入数组
+    },1000)
+}
+
+
+
+
+//清除
+function clearAll(){
+    setInterval(function(){                     
+        for (var i = 0; i<bullets.length; i++) {                //清除越界子弹
+            var currentBullet = bullets[i];
+            if (currentBullet.htmlElem.offsetTop<-6) {
+                    currentBullet.clearSelf();
+                    bullets.splice(i,1);
+                    break;
+                };
+        }
+            for (var j = 0; j<enemies.length; j++) {            //清除越界敌机
+                var currentEnemy = enemies[j];
+                if (currentEnemy.htmlObj.offsetTop>500) {
+                    currentEnemy.clearSelf();
+                    enemies.splice(j,1);
+                    break;
+                };
+            };
+        for (var m = 0; m < bullets.length; m++) {              //清除相撞敌机与子弹
+            for (var n = 0; n < enemies.length; n++) {
+                 var currentBullet = bullets[m];
+                 var currentEnemy = enemies[n];
+                if (currentBullet.htmlElem.offsetTop  >= currentEnemy.htmlObj.offsetTop &&
+                    currentBullet.htmlElem.offsetTop  <= currentEnemy.htmlObj.offsetTop+parseInt(currentEnemy.htmlObj.style.height)&&
+                    currentBullet.htmlElem.offsetLeft <= currentEnemy.htmlObj.offsetLeft+parseInt(currentEnemy.htmlObj.style.width)&&
+                    currentBullet.htmlElem.offsetLeft >= currentEnemy.htmlObj.offsetLeft) {
+
+                     currentBullet.clearSelf();
+                    bullets.splice(m,1);
+                    currentEnemy.clearSelf();
+                    enemies.splice(n,1);          //删除数组元素
+                    sum++;
+                    document.getElementById("ppp").innerHTML="恭喜您!获得"+sum+"分";
+
+                    return;
+
+                };
+            };
+        };
+    },10)
+}
+
+
+
+//加载运行
+    window.onload = function(){
+        var father = document.getElementById("ground");
+        var myplane = new Myplane(father,"Myfir");
+        createEnemy(father);
+        clearAll();
+        // var oneEnemy = new EnemyPlane(father,110,166,"-110px -736px");
+        // var bullet  = new Bullet(father,myplane.html.offsetTop,myplane.html.offsetLeft);
+    }
+    
+
+</script>
+</html>

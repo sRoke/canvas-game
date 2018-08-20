@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset = "utf8">
+	<title></title>
+	<style type="text/css">
+	div,ul,li,body,canvas,input{
+		margin: 0;
+		padding: 0;
+	}
+	#ground ul{
+		width: 576px;
+		height: 512px;
+		list-style: none;
+		position: absolute;
+	}
+	#ground ul li{
+		float: left;
+		width: 288px;
+		height: 512px;
+	}
+	#jifenban{
+
+	}
+	.start{
+		width: 80px;
+		height: 28px;
+		position: absolute;
+		left: 104px;
+		top: 200px;
+		display: inline-block;
+		opacity: 0;
+	}
+	#starts{
+		width: 80px;
+		height: 28px;
+		border: none;
+		outline: none;
+
+	}
+	</style>
+</head>
+<body>
+<div id="ground" style="width:288px;height:512px;position:relative">
+<canvas id = "canvas" width="288px" height = "512px">
+</canvas>
+<div class="start">
+	<input type="button" id="starts" onclick=mains.draw()>
+</div>
+</div>
+<input type="button" value="暂停" onclick=clearInterval(mains.times)>
+<div id="jifenban">恭喜你获得0分</div>
+</body>
+<script type="text/javascript" >
+var jifenban = document.getElementById("jifenban");
+	var canvas=document.getElementById('canvas');
+	var context = canvas.getContext('2d');
+
+//绘制开始背景
+
+	function startBird(){
+		this.bgimg = new Image();
+		this.bgimg.src = "小鸟项目/小鸟素材/button_share.png";
+		var _this =this;
+		this.bgimg.onload = function(){
+				context.drawImage(_this.bgimg,104,200,80,28);
+		}
+	}
+	
+
+	// 绘制背景图
+	function Background(x,y,width,height,imgUrl){
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.bgimg = new Image();
+		this.bgimg.src = imgUrl;
+		var _this =this;
+		this.diWidth = 0;
+			_this.draw = function(){
+				context.drawImage(_this.bgimg,_this.x,_this.y,_this.width,_this.height);
+			}
+	}
+
+//绘制地面
+function dimian(){
+	this.bgimg2 = new Image();
+	this.bgimg2.src = "小鸟项目/小鸟素材/land.png";
+	var _this =this;
+	this.diWidth = 0;
+			_this.draw = function(){
+        	  	if (_this.diWidth<=-41) {
+        	  	_this.diWidth = 0;
+        	  	}
+					context.drawImage(_this.bgimg2,_this.diWidth,400,336,112);
+					_this.diWidth -=5;	
+			}
+}
+
+//绘制柱子
+function zhuZi(image){
+	this.columnWhdth = 288;
+	this.bgimg = new Image();
+	this.bgimg.src = image;
+	var _this =this;
+    this.randomNum = Math.floor(Math.random()*323);
+	// this.bgimg.onload = function(){
+		_this.draw = function(){
+			if (_this.columnWhdth<=-52) {
+        	  	_this.randomNum = Math.floor(Math.random()*323);
+        	  	_this.columnWhdth = 288;
+        	  }else{
+			context.drawImage(_this.bgimg,112,965-_this.randomNum,52,_this.randomNum,_this.columnWhdth,0,52,_this.randomNum);
+			context.drawImage(_this.bgimg,168,644,53,312-_this.randomNum,_this.columnWhdth,_this.randomNum+100,52,300-_this.randomNum);
+			_this.columnWhdth -=5;
+			}
+		}
+}
+	// 绘制小鸟
+	function Birds(images){
+
+		this.x = 100;
+		this.y = 200;
+		this.imgs = new Array();
+		for (var i = 0; i <images.length; i++) {
+			var imgs = new Image();
+			imgs.src = images[i];
+			this.imgs[i] =imgs;
+        }
+        var summ = 0;
+        var _this = this; 
+        this.g = 0;											//下落速度增加数
+        	this.draw = function(){ 	
+        		var currentIndex = summ % _this.imgs.length;
+        		
+				document.onkeyup = function(event){
+					event = event || window.event;
+					if (event.keyCode ==37) {
+						_this.x -=20;
+					};
+					if (event.keyCode ==32) {
+						_this.y -=30;
+					};
+					if (event.keyCode ==39) {
+						_this.x +=20;
+					};
+					if (event.keyCode ==40) {
+						_this.y +=20;
+					};
+					_this.g= 0 ;
+	   			}
+	   			_this.y = _this.y+_this.g*1;
+	   			_this.g++;
+	   			// console.log(currentIndex);
+	        	var currentImage = _this.imgs[currentIndex];    	
+	        	context.drawImage(currentImage,_this.x,_this.y,48,48);
+	        	summ ++;
+	        }
+       // }
+    }
+//小鸟死亡判断
+function birdDie(){
+	this.bgimgOver = new Image();
+	this.bgimgOver.src = "小鸟项目/小鸟素材/text_game_over.png";
+	if (bird.x+30>column.columnWhdth&&bird.x+18<column.columnWhdth+52) {
+		if (bird.y+18<column.randomNum||bird.y+30>column.randomNum+100) {
+			clearInterval(mains.times);
+
+		starts.style.display = "inline-block";
+		startBird();
+		context.drawImage(this.bgimgOver,42,144,204,54);
+
+
+		};
+	};
+	if (bird.y+30>400||bird.y+18<0) {
+		clearInterval(mains.times);
+		starts.style.display = "inline-block";
+		startBird();
+		context.drawImage(this.bgimgOver,42,144,204,54);
+	};
+}
+//判断分数
+function fenshu(){
+	if (column.columnWhdth==288) {
+		flog=0;
+	};
+	if (bird.x+18>column.columnWhdth+52&&flog==0) {
+		fs++;
+		flog=1;
+	};
+}
+//运行定时器
+function mainbird(){
+	var _this =this;
+	this.draw = function(){
+		bird.x = 100;
+		bird.y =200;
+		bird.g = 0;
+		fs = 0 ;
+		column.columnWhdth =288;
+		starts.style.display = "none";
+		_this.times=setInterval(function(){
+		context.clearRect(0,0,288,512);
+		background.draw();
+		diMian.draw();
+		column.draw();
+		bird.draw();
+		fenshu();
+		birdDie();
+		jifenban.innerHTML = "恭喜你获得"+fs+"分";
+	},60)}
+}
+var flog = 0;
+var fs = 0;
+var bird = new Birds(["小鸟项目/小鸟素材/bird0_0.png","小鸟项目/小鸟素材/bird0_1.png","小鸟项目/小鸟素材/bird0_2.png"]);
+var background = new Background(0,0,288,512,"小鸟项目/小鸟素材/bg_day.png");//创建对象
+var column = new zhuZi("小鸟项目/小鸟素材/atlas.png");
+var mains=new mainbird(); 
+var diMian = new dimian();
+ 
+background.bgimg.onload=function(){
+	background.draw();
+}
+startBird();
+bird.imgs[0].onload =function(){
+	bird.draw();
+}
+</script>
+</html>
